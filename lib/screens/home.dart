@@ -1,8 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+
 import 'package:learning_api/models/user.dart';
+import 'package:learning_api/services/user_api.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,6 +12,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<User> users = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUsers();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
           final user = users[index];
           return ListTile(
             title: Text(
-              user.email,
+              user.name.last,
               style: const TextStyle(
                 fontSize: 13,
               ),
@@ -41,31 +46,13 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: fetchUsers,
-      ),
     );
   }
 
-  void fetchUsers() async {
-    const url = 'https://randomuser.me/api/?results=100';
-    final uri = Uri.parse(url);
-    final response = await http.get(uri);
-    final body = response.body;
-    final json = jsonDecode(body);
-    final result = json['results'] as List<dynamic>;
-    final transfomed = result.map((e) {
-      return User(
-        gender: e['gender'],
-        email: e['email'],
-        phone: e['phone'],
-        cell: e['cell'],
-        nat: e['nat'],
-      );
-    }).toList();
-
+  Future<void> fetchUsers() async {
+    final response = await UserApi.fetchUsers();
     setState(() {
-      users = transfomed;
+      users = response;
     });
   }
 }
